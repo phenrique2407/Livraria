@@ -31,18 +31,6 @@
 | Build          | Maven (com Maven Wrapper)                                      |
 | Front-end      | HTML, CSS e JavaScript puro (Fetch API)                        |
 
-## 📊 Linguagens utilizadas
-
-```mermaid
-pie title Linguagens do código-fonte
-    "Java" : 4723
-    "JavaScript" : 4294
-    "HTML" : 1245
-    "CSS" : 1147
-```
-
-> Percentuais calculados pelo tamanho dos arquivos. O CSS e o JavaScript ficam dentro do `index.html`, então foram contados separadamente do HTML. Os scripts do Maven Wrapper (`mvnw` e `mvnw.cmd`) não entram na conta, por serem arquivos gerados. Por isso, a barra de linguagens que o GitHub exibe na página do repositório pode mostrar valores diferentes.
-
 ## 📋 Pré-requisitos
 
 - [JDK 17](https://adoptium.net/) ou superior
