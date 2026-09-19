@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: usuario_livraria
+      POSTGRES_PASSWORD: senha_livraria
+      POSTGRES_DB: banco_livraria
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_livraria:/var/lib/postgresql/data
+
+volumes:
+  pgdata_livraria:

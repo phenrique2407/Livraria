@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciamento do Sistema de Livros</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f9; }
+        .container { display: flex; gap: 20px; flex-wrap: wrap; }
+        .caixa { background: white; padding: 20px; border-radius: 8px; flex: 1; min-width: 300px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        input { width: 90%; padding: 10px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 10px 15px; background: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; margin-right: 5px; }
+        button:hover { background: #0056b3; }
+        .btn-cancelar { background: #6c757d; }
+        .btn-cancelar:hover { background: #5a6268; }
+        .btn-editar { background: #ffc107; color: #212529; }
+        .btn-editar:hover { background: #e0a800; }
+        .btn-deletar { background: #dc3545; }
+        .btn-deletar:hover { background: #b02a37; }
+        li { margin-bottom: 10px; font-size: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+        .acoes { display: flex; gap: 5px; }
+    </style>
+</head>
+<body>
+
+    <h2>📚 Sistema de Gerenciamento de Livros</h2>
+
+    <div class="container">
+        <!-- FORMULÁRIO DE CADASTRO / EDIÇÃO -->
+        <div class="caixa">
+            <h3 id="tituloForm">Adicionar Novo Livro</h3>
+            <input type="hidden" id="livroId">
+            <input type="text" id="titulo" placeholder="Título do Livro">
+            <input type="text" id="autor" placeholder="Autor">
+            <input type="number" id="anoPublicacao" placeholder="Ano de Publicação">
+            
+            <button id="btnSalvar" onclick="salvarOuAtualizarLivro()">Cadastrar Livro</button>
+            <button id="btnCancelar" onclick="limparFormulario()" class="btn-cancelar" style="display: none;">Cancelar</button>
+        </div>
+
+        <!-- LISTA DE LIVROS -->
+        <div class="caixa">
+            <h3>Lista de Livros Cadastrados</h3>
+            <button onclick="carregarLivros()" style="margin-bottom: 15px;">Atualizar Lista</button>
+            <ul id="listaDeLivros" style="padding-left: 0;"></ul>
+        </div>
+    </div>
+
+    <script>
+        // Carrega a lista de livros
+        async function carregarLivros() {
+            const resposta = await fetch('livros');
+            const livros = await resposta.json();
+            const lista = document.getElementById('listaDeLivros');
+            lista.innerHTML = '';
+
+            livros.forEach(livro => {
+                const item = document.createElement('li');
+                item.textContent = `${livro.titulo} - ${livro.autor} (${livro.anoPublicacao})`;
+
+                const divAcoes = document.createElement('div');
+                divAcoes.className = 'acoes';
+
+                // Botão de Editar
+                const btnEditar = document.createElement('button');
+                btnEditar.textContent = 'Editar';
+                btnEditar.className = 'btn-editar';
+                btnEditar.onclick = () => prepararEdicao(livro);
+
+                // Botão de Deletar
+                const btnDeletar = document.createElement('button');
+                btnDeletar.textContent = 'Deletar';
+                btnDeletar.className = 'btn-deletar';
+                btnDeletar.onclick = () => deletarLivro(livro.id);
+
+                divAcoes.appendChild(btnEditar);
+                divAcoes.appendChild(btnDeletar);
+                item.appendChild(divAcoes);
+                lista.appendChild(item);
+            });
+        }
+
+        // Cadastra um novo livro ou Atualiza o existente
+        async function salvarOuAtualizarLivro() {
+            const id = document.getElementById('livroId').value;
+            const titulo = document.getElementById('titulo').value;
+            const autor = document.getElementById('autor').value;
+            const anoPublicacao = parseInt(document.getElementById('anoPublicacao').value);
+
+            if (!titulo || !autor || !anoPublicacao) {
+                alert('Preencha todos os campos!');
+                return;
+            }
+
+            const livroData = { titulo, autor, anoPublicacao };
+
+            let url = 'livros';
+            let metodo = 'POST';
+
+            // Se existir ID, é uma atualização (PUT)
+            if (id) {
+                url = 'livros/' + id;
+                metodo = 'PUT';
+            }
+
+            const resposta = await fetch(url, {
+                method: metodo,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(livroData)
+            });
+
+            if (resposta.ok) {
+                limparFormulario();
+                carregarLivros();
+            } else {
+                const erro = await resposta.text();
+                alert(erro || 'Erro ao processar a requisição.');
+            }
+        }
+
+        // Preenche o formulário com os dados do livro selecionado para editar
+        function prepararEdicao(livro) {
+            document.getElementById('livroId').value = livro.id;
+            document.getElementById('titulo').value = livro.titulo;
+            document.getElementById('autor').value = livro.autor;
+            document.getElementById('anoPublicacao').value = livro.anoPublicacao;
+
+            document.getElementById('tituloForm').textContent = 'Editar Livro #' + livro.id;
+            document.getElementById('btnSalvar').textContent = 'Salvar Alterações';
+            document.getElementById('btnCancelar').style.display = 'inline-block';
+        }
+
+        // Limpa o formulário e volta ao modo de Cadastro
+        function limparFormulario() {
+            document.getElementById('livroId').value = '';
+            document.getElementById('titulo').value = '';
+            document.getElementById('autor').value = '';
+            document.getElementById('anoPublicacao').value = '';
+
+            document.getElementById('tituloForm').textContent = 'Adicionar Novo Livro';
+            document.getElementById('btnSalvar').textContent = 'Cadastrar Livro';
+            document.getElementById('btnCancelar').style.display = 'none';
+        }
+
+        // Apaga o livro pelo ID
+        async function deletarLivro(id) {
+            if (confirm('Tem certeza que deseja apagar este livro?')) {
+                await fetch('livros/' + id, { method: 'DELETE' });
+                carregarLivros();
+            }
+        }
+
+        // Inicia a lista assim que abre a página
+        carregarLivros();
+    </script>
+</body>
+</html>
